@@ -32,7 +32,9 @@
             };
             
             // Firebase初期化
-            firebase.initializeApp(firebaseConfig);
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
             const db = firebase.firestore();
             
             const textArea = document.getElementById("sharedText");
