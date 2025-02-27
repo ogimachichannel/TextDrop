@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase同期メモ</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+        textarea { width: 90%; height: 200px; margin-top: 10px; font-size: 16px; }
+        #qrcode { margin-top: 20px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <h1>Firebase同期メモ</h1>
+    <div id="qrcode"></div>
+    <textarea id="sharedText" placeholder="ここにテキストを入力..."></textarea>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Firebase設定情報
+            const firebaseConfig = {
+                apiKey: "AIzaSyDYB85ij4gJH6ouCSMaZHCS2zC77T_1pfo",
+                authDomain: "textdrop-6f4e5.firebaseapp.com",
+                projectId: "textdrop-6f4e5",
+                storageBucket: "textdrop-6f4e5.appspot.com",
+                messagingSenderId: "1003920001497",
+                appId: "1:1003920001497:web:e7fe245971b54e808371c8",
+                measurementId: "G-2WV05QX9JX"
+            };
+            
+            // Firebase初期化
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            const db = firebase.firestore();
+            
+            const textArea = document.getElementById("sharedText");
+            const qrCodeElement = document.getElementById("qrcode");
+            if (!textArea || !qrCodeElement) {
+                console.error("必要な要素が見つかりません。");
+                return;
+            }
+            
+            const docRef = db.collection("shared").doc("text");
+            
+            // Firestoreのデータを監視し、変更時に更新
+            docRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    textArea.value = doc.data().content;
+                }
+            }, (error) => {
+                console.error("Firestoreのデータ取得エラー: ", error);
+            });
+            
+            // テキスト変更時にFirestoreへ保存
+            textArea.addEventListener("input", () => {
+                docRef.set({ content: textArea.value }).catch(error => {
+                    console.error("Firestoreの書き込みエラー: ", error);
+                });
+            });
+            
+            // QRコードを生成（現在のURLをQRコード化）
+            if (window.QRCode) {
+                new QRCode(qrCodeElement, {
+                    text: window.location.href,
+                    width: 150,
+                    height: 150
+                });
+            } else {
+                console.error("QRコード生成ライブラリが読み込まれていません。");
+            }
+        });
+    </script>
+</body>
+</html>
